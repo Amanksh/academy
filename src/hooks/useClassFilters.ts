@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
-import { danceClasses } from '../data/mockData'
-import type { DanceClass, DanceStyle, ExperienceLevel } from '../types'
+import { useAcademy } from './useAcademy'
+import type { ApiClass } from '../lib/api'
+import type { DanceStyle, ExperienceLevel } from '../types'
 
 interface ClassFilters {
   readonly style: DanceStyle | 'All'
@@ -14,7 +15,7 @@ interface UseClassFiltersResult {
   readonly setLevel: (level: ExperienceLevel | 'All') => void
   readonly setInstructorId: (instructorId: string) => void
   readonly reset: () => void
-  readonly filteredClasses: readonly DanceClass[]
+  readonly filteredClasses: readonly ApiClass[]
 }
 
 const INITIAL: ClassFilters = {
@@ -24,17 +25,18 @@ const INITIAL: ClassFilters = {
 }
 
 export function useClassFilters(): UseClassFiltersResult {
+  const { classes } = useAcademy()
   const [filters, setFilters] = useState<ClassFilters>(INITIAL)
 
   const filteredClasses = useMemo(() => {
-    return danceClasses.filter((item) => {
-      const styleOk = filters.style === 'All' || item.style === filters.style
+    return classes.filter((item) => {
+      const styleOk = filters.style === 'All' || item.style === filters.style.toLowerCase()
       const levelOk = filters.level === 'All' || item.level === filters.level
       const instructorOk =
         filters.instructorId === 'All' || item.instructorId === filters.instructorId
       return styleOk && levelOk && instructorOk
     })
-  }, [filters])
+  }, [filters, classes])
 
   return {
     filters,

@@ -1,18 +1,23 @@
 import {
   createContext,
   useCallback,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from 'react'
-import {
-  classById,
-  eventById,
-  planById,
-} from '../data/mockData'
+import { api, type ApiClass, type ApiEvent, type ApiInstructor, type ApiMembershipPlan } from '../lib/api'
 import type { PendingBooking } from '../types'
 
 export interface AcademyContextValue {
+  // Data from API
+  readonly classes: ApiClass[]
+  readonly events: ApiEvent[]
+  readonly instructors: ApiInstructor[]
+  readonly membershipPlans: ApiMembershipPlan[]
+  readonly dataLoading: boolean
+
+  // Booking state (client-side)
   readonly bookedClassIds: ReadonlySet<string>
   readonly bookedEventIds: ReadonlySet<string>
   readonly bookedSessionIds: ReadonlySet<string>
@@ -24,6 +29,12 @@ export interface AcademyContextValue {
   readonly confirmBooking: () => void
   readonly reserveSession: (sessionId: string) => void
   readonly dismissToast: () => void
+
+  // Lookup helpers (work on fetched data)
+  readonly classById: (id: string) => ApiClass | undefined
+  readonly eventById: (id: string) => ApiEvent | undefined
+  readonly instructorById: (id: string) => ApiInstructor | undefined
+  readonly planById: (id: string) => ApiMembershipPlan | undefined
 }
 
 export const AcademyContext = createContext<AcademyContextValue | null>(null)
@@ -33,6 +44,48 @@ interface AcademyProviderProps {
 }
 
 export function AcademyProvider({ children }: AcademyProviderProps) {
+  // ── API data ──
+  const [classes, setClasses] = useState<ApiClass[]>([])
+  const [events, setEvents] = useState<ApiEvent[]>([])
+  const [instructors, setInstructors] = useState<ApiInstructor[]>([])
+  const [membershipPlans, setMembershipPlans] = useState<ApiMembershipPlan[]>([])
+  const [dataLoading, setDataLoading] = useState(true)
+
+  // Fetch all catalog data on mount
+  useEffect(() => {
+    async function fetchAll() {
+      try {
+        const [classesRes, eventsRes, instructorsRes, plansRes] = await Promise.all([
+          api.classes.list(),
+          api.events.list(),
+          api.instructors.list(),
+          api.membership.plans(),
+        ])
+        setClasses(classesRes.classes)
+        setEvents(eventsRes.events)
+        setInstructors(instructorsRes.instructors)
+        setMembershipPlans(plansRes.plans)
+      } catch (err) {
+        console.error('Failed to fetch academy data:', err)
+      } finally {
+        setDataLoading(false)
+      }
+    }
+    fetchAll()
+  }, [])
+
+  // ── Lookup maps ──
+  const classMap = useMemo(() => new Map(classes.map((c) => [c.id, c])), [classes])
+  const eventMap = useMemo(() => new Map(events.map((e) => [e.id, e])), [events])
+  const instructorMap = useMemo(() => new Map(instructors.map((i) => [i.id, i])), [instructors])
+  const planMap = useMemo(() => new Map(membershipPlans.map((p) => [p.id, p])), [membershipPlans])
+
+  const classById = useCallback((id: string) => classMap.get(id), [classMap])
+  const eventById = useCallback((id: string) => eventMap.get(id), [eventMap])
+  const instructorById = useCallback((id: string) => instructorMap.get(id), [instructorMap])
+  const planById = useCallback((id: string) => planMap.get(id), [planMap])
+
+  // ── Booking state (client-side) ──
   const [bookedClassIds, setBookedClassIds] = useState<Set<string>>(
     () => new Set(['bharatanatyam-technique']),
   )
@@ -78,7 +131,7 @@ export function AcademyProvider({ children }: AcademyProviderProps) {
     }
 
     setPending(null)
-  }, [pending])
+  }, [pending, classById, eventById, planById])
 
   const reserveSession = useCallback((sessionId: string) => {
     setBookedSessionIds((current) => new Set(current).add(sessionId))
@@ -87,6 +140,11 @@ export function AcademyProvider({ children }: AcademyProviderProps) {
 
   const value = useMemo<AcademyContextValue>(
     () => ({
+      classes,
+      events,
+      instructors,
+      membershipPlans,
+      dataLoading,
       bookedClassIds,
       bookedEventIds,
       bookedSessionIds,
@@ -98,8 +156,17 @@ export function AcademyProvider({ children }: AcademyProviderProps) {
       confirmBooking,
       reserveSession,
       dismissToast,
+      classById,
+      eventById,
+      instructorById,
+      planById,
     }),
     [
+      classes,
+      events,
+      instructors,
+      membershipPlans,
+      dataLoading,
       bookedClassIds,
       bookedEventIds,
       bookedSessionIds,
@@ -111,6 +178,10 @@ export function AcademyProvider({ children }: AcademyProviderProps) {
       confirmBooking,
       reserveSession,
       dismissToast,
+      classById,
+      eventById,
+      instructorById,
+      planById,
     ],
   )
 

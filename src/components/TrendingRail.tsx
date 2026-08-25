@@ -1,6 +1,12 @@
-import { classById, instructorById, trendingClassIds } from '../data/mockData'
+import { useAcademy } from '../hooks/useAcademy'
 import { formatInr } from '../lib/format'
 import { Icon } from './Icon'
+
+const TRENDING_CLASS_IDS = [
+  'kathak-foundations',
+  'contemporary-flow',
+  'odissi-abhinaya',
+] as const
 
 interface TrendingRailProps {
   readonly className?: string
@@ -8,6 +14,8 @@ interface TrendingRailProps {
 }
 
 export function TrendingRail({ className = '', onBook }: TrendingRailProps) {
+  const { classById, instructorById } = useAcademy()
+
   return (
     <section className={className}>
       <div className="mb-6 flex items-end justify-between gap-4">
@@ -22,10 +30,11 @@ export function TrendingRail({ className = '', onBook }: TrendingRailProps) {
         <Icon name="local_fire_department" className="text-primary" filled size={28} />
       </div>
       <ul className="grid gap-6 md:grid-cols-3">
-        {trendingClassIds.map((id, index) => {
+        {TRENDING_CLASS_IDS.map((id, index) => {
           const item = classById(id)
-          const instructor = item ? instructorById(item.instructorId) : undefined
+          const instructor = item ? (item.instructor || instructorById(item.instructorId)) : undefined
           if (!item) return null
+          const image = item.imageUrl || (item as any).image
           return (
             <li
               key={item.id}
@@ -34,7 +43,7 @@ export function TrendingRail({ className = '', onBook }: TrendingRailProps) {
             >
               <div className="relative h-52 overflow-hidden">
                 <img
-                  src={item.image}
+                  src={image}
                   alt=""
                   className="size-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
                 />

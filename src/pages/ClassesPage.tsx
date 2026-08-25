@@ -1,14 +1,12 @@
 import type { ReactNode } from 'react'
-import {
-  danceStyles,
-  instructors,
-} from '../data/mockData'
 import { useAcademy } from '../hooks/useAcademy'
 import { useClassFilters } from '../hooks/useClassFilters'
 import { ClassCard } from '../components/ClassCard'
 import { FilterChip } from '../components/FilterChip'
 import { PageSection } from '../components/Navigation'
 import type { DanceStyle } from '../types'
+
+const DANCE_STYLE_FILTERS = ['All', 'Kathak', 'Bharatanatyam', 'Contemporary', 'Odissi'] as const
 
 interface ClassesPageProps {
   readonly className?: string
@@ -22,7 +20,7 @@ export function ClassesPage({ className = '' }: ClassesPageProps) {
     reset,
     filteredClasses,
   } = useClassFilters()
-  const { openBooking, bookedClassIds } = useAcademy()
+  const { openBooking, bookedClassIds, instructors } = useAcademy()
 
   return (
     <PageSection className={`py-12 lg:py-16 ${className}`}>
@@ -48,7 +46,7 @@ export function ClassesPage({ className = '' }: ClassesPageProps) {
       <div className="mb-10 rounded-2xl glass-card p-6">
         <div className="grid gap-6 lg:grid-cols-2">
           <FilterGroup label="Dance style">
-            {danceStyles.map((style) => (
+            {DANCE_STYLE_FILTERS.map((style) => (
               <FilterChip
                 key={style}
                 label={style}

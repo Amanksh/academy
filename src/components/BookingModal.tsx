@@ -1,9 +1,4 @@
-import {
-  classById,
-  eventById,
-  instructorById,
-  planById,
-} from '../data/mockData'
+import { useAcademy } from '../hooks/useAcademy'
 import { formatInr } from '../lib/format'
 import type { PendingBooking } from '../types'
 import { Icon } from './Icon'
@@ -21,17 +16,19 @@ export function BookingModal({
   onConfirm,
   className = '',
 }: BookingModalProps) {
+  const { classById, eventById, planById, instructorById } = useAcademy()
+
   const danceClass = pending.kind === 'class' ? classById(pending.id) : undefined
   const event = pending.kind === 'event' ? eventById(pending.id) : undefined
   const plan = pending.kind === 'plan' ? planById(pending.id) : undefined
   const instructor = danceClass
-    ? instructorById(danceClass.instructorId)
+    ? (danceClass.instructor || instructorById(danceClass.instructorId))
     : event?.instructorId
-      ? instructorById(event.instructorId)
+      ? (event.instructor || instructorById(event.instructorId))
       : undefined
 
   const title = danceClass?.name ?? event?.title ?? plan?.label ?? 'Confirm'
-  const image = danceClass?.image ?? event?.image
+  const image = danceClass?.imageUrl || (danceClass as any)?.image || event?.imageUrl || (event as any)?.image
   const price = danceClass?.priceInr ?? event?.priceInr ?? plan?.priceInr ?? 0
   const subtitle =
     pending.kind === 'plan'

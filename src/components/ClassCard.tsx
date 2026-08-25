@@ -1,10 +1,10 @@
-import { instructorById } from '../data/mockData'
+import { useAcademy } from '../hooks/useAcademy'
 import { formatInr, weekdayInitials } from '../lib/format'
-import type { DanceClass } from '../types'
+import type { ApiClass } from '../lib/api'
 import { Icon } from './Icon'
 
 interface ClassCardProps {
-  readonly danceClass: DanceClass
+  readonly danceClass: ApiClass
   readonly booked?: boolean
   readonly onBook: (classId: string) => void
   readonly className?: string
@@ -16,7 +16,8 @@ export function ClassCard({
   onBook,
   className = '',
 }: ClassCardProps) {
-  const instructor = instructorById(danceClass.instructorId)
+  const { instructorById } = useAcademy()
+  const instructor = danceClass.instructor || instructorById(danceClass.instructorId)
 
   return (
     <article
@@ -24,7 +25,7 @@ export function ClassCard({
     >
       <div className="relative h-56 min-h-[220px] overflow-hidden lg:h-full">
         <img
-          src={danceClass.image}
+          src={danceClass.imageUrl || (danceClass as any).image || ''}
           alt=""
           className="size-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
         />
@@ -45,7 +46,7 @@ export function ClassCard({
           </p>
           <div className="mt-5 flex items-center gap-3">
             <img
-              src={instructor?.avatar}
+              src={instructor?.avatarUrl || (instructor as any)?.avatar || ''}
               alt=""
               className="size-12 rounded-full object-cover ring-2 ring-primary/20"
             />
@@ -63,7 +64,7 @@ export function ClassCard({
             </span>
             <span className="inline-flex items-center gap-1.5">
               <Icon name="calendar_view_week" size={18} />
-              {weekdayInitials(danceClass.weekdays)}
+              {weekdayInitials((danceClass.weekdays || []) as any)}
             </span>
             <span className="inline-flex items-center gap-1.5">
               <Icon name="group" size={18} />

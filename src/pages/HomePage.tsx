@@ -1,10 +1,5 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  danceClasses,
-  events,
-  instructors,
-} from '../data/mockData'
 import { useAcademy } from '../hooks/useAcademy'
 import { EventCard } from '../components/EventCard'
 import { TrendingRail } from '../components/TrendingRail'
@@ -57,13 +52,13 @@ interface HomePageProps {
 }
 
 export function HomePage({ className = '' }: HomePageProps) {
-  const { openBooking, bookedEventIds } = useAcademy()
+  const { openBooking, bookedEventIds, classes, events, instructors } = useAcademy()
   const [videoModalOpen, setVideoModalOpen] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
   const [trialEmail, setTrialEmail] = useState('')
   const [trialSubmitted, setTrialSubmitted] = useState(false)
 
-  const featuredEvent = events.find((e) => e.featured) ?? events[0]
+  const featuredEvent = events.find((e) => e.isFeatured) ?? events[0]
 
   function toggleMute() {
     setIsMuted((prev) => !prev)
@@ -135,7 +130,7 @@ export function HomePage({ className = '' }: HomePageProps) {
               {/* Pinned Sticker: "JOIN WITH US" */}
               <button
                 type="button"
-                onClick={() => openBooking({ kind: 'class', id: danceClasses[0]?.id ?? 'kathak-foundations' })}
+                onClick={() => openBooking({ kind: 'class', id: classes[0]?.id ?? 'kathak-foundations' })}
                 className="group absolute right-3 top-3 sm:right-5 sm:top-5 z-20 flex size-16 sm:size-20 lg:size-24 flex-col items-center justify-center rounded-full border-2 border-black bg-[#fcd3bd] text-center text-black font-black uppercase shadow-[4px_4px_0px_#000] rotate-12 transition-all duration-300 hover:rotate-0 hover:scale-110 active:translate-x-1 active:translate-y-1 active:shadow-none"
               >
                 <span className="text-[9px] sm:text-[11px] lg:text-xs leading-none font-extrabold">JOIN</span>
@@ -200,12 +195,18 @@ export function HomePage({ className = '' }: HomePageProps) {
             </Link>
           </div>
 
-          <EventCard
-            event={featuredEvent}
-            featured
-            booked={bookedEventIds.has(featuredEvent.id)}
-            onBook={(id) => openBooking({ kind: 'event', id })}
-          />
+          {featuredEvent ? (
+            <EventCard
+              event={featuredEvent}
+              featured
+              booked={bookedEventIds.has(featuredEvent.id)}
+              onBook={(id) => openBooking({ kind: 'event', id })}
+            />
+          ) : (
+            <div className="min-h-[300px] rounded-[28px] glass-card flex items-center justify-center p-8 text-center text-white/50 animate-pulse">
+              Loading featured masterclass...
+            </div>
+          )}
         </PageSection>
       </section>
 
@@ -330,7 +331,7 @@ export function HomePage({ className = '' }: HomePageProps) {
                 className="group flex flex-col items-center rounded-3xl border border-white/10 bg-[#0d1216] p-6 text-center transition-all hover:-translate-y-2 hover:border-[#25d7da]/50"
               >
                 <img
-                  src={guru.avatar}
+                  src={guru.avatarUrl || (guru as any).avatar}
                   alt={guru.name}
                   className="size-24 rounded-full object-cover ring-2 ring-white/20 transition-transform duration-300 group-hover:scale-105 group-hover:ring-[#25d7da]"
                 />

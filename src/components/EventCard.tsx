@@ -1,10 +1,10 @@
-import { instructorById } from '../data/mockData'
+import { useAcademy } from '../hooks/useAcademy'
 import { formatInr } from '../lib/format'
-import type { AcademyEvent } from '../types'
+import type { ApiEvent } from '../lib/api'
 import { Icon } from './Icon'
 
 interface EventCardProps {
-  readonly event: AcademyEvent
+  readonly event: ApiEvent
   readonly featured?: boolean
   readonly booked?: boolean
   readonly onBook: (eventId: string) => void
@@ -18,15 +18,20 @@ export function EventCard({
   onBook,
   className = '',
 }: EventCardProps) {
-  const instructor = event.instructorId
-    ? instructorById(event.instructorId)
-    : undefined
+  if (!event) return null
+
+  const { instructorById } = useAcademy()
+  const instructor = event.instructor || (event.instructorId ? instructorById(event.instructorId) : undefined)
+
+  // Compat: support both API shape (startDate) and mock shape (dateLabel)
+  const dateLabel = (event as any).dateLabel || event.startDate
+  const image = event.imageUrl || (event as any).image
 
   if (featured) {
     return (
       <article className={`relative min-h-[480px] w-full overflow-hidden rounded-[28px] sm:rounded-[36px] border border-white/10 lg:min-h-[560px] ${className}`}>
         <img
-          src={event.image}
+          src={image}
           alt={event.title}
           className="hero-pan absolute inset-0 size-full object-cover"
         />
@@ -45,7 +50,7 @@ export function EventCard({
             <div className="mt-6 flex flex-wrap items-center gap-5 text-xs sm:text-sm font-semibold text-white/90">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 backdrop-blur-md">
                 <Icon name="calendar_month" size={18} className="text-[#25d7da]" />
-                {event.dateLabel}
+                {dateLabel}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 backdrop-blur-md">
                 <Icon name="schedule" size={18} className="text-[#25d7da]" />
@@ -76,7 +81,7 @@ export function EventCard({
     >
       <div className="relative h-56 overflow-hidden lg:h-full">
         <img
-          src={event.image}
+          src={image}
           alt=""
           className="size-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
         />
@@ -91,7 +96,7 @@ export function EventCard({
             {event.description}
           </p>
           <p className="mt-3 text-sm font-semibold text-terracotta dark:text-terracotta-muted">
-            {event.dateLabel} · {event.timeLabel} · {instructor?.name ?? event.venue}
+            {dateLabel} · {event.timeLabel} · {instructor?.name ?? event.venue}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-6 lg:flex-col lg:items-end">

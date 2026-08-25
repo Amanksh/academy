@@ -1,4 +1,3 @@
-import { eventCategories } from '../data/mockData'
 import { useAcademy } from '../hooks/useAcademy'
 import { useEventFilter } from '../hooks/useEventFilter'
 import { EventCard } from '../components/EventCard'
@@ -6,6 +5,8 @@ import { FilterChip } from '../components/FilterChip'
 import { PageSection } from '../components/Navigation'
 import { TrendingRail } from '../components/TrendingRail'
 import type { EventCategory } from '../types'
+
+const EVENT_CATEGORIES = ['All', 'Workshops', 'Performances', 'Auditions'] as const
 
 interface EventsPageProps {
   readonly className?: string
@@ -37,7 +38,7 @@ export function EventsPage({ className = '' }: EventsPageProps) {
             <h2 className="mt-1 font-expanded text-3xl font-bold">Upcoming events</h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            {eventCategories.map((item) => (
+            {EVENT_CATEGORIES.map((item) => (
               <FilterChip
                 key={item}
                 label={item}

@@ -28,7 +28,7 @@ export function AuthModal({
   const [signupConfirm, setSignupConfirm] = useState('')
   const [signupError, setSignupError] = useState('')
 
-  function handleLogin(event: FormEvent) {
+  async function handleLogin(event: FormEvent) {
     event.preventDefault()
     setLoginError('')
 
@@ -41,11 +41,15 @@ export function AuthModal({
       return
     }
 
-    login(loginEmail, loginPassword)
-    onClose()
+    const error = await login(loginEmail, loginPassword)
+    if (error) {
+      setLoginError(error)
+    } else {
+      onClose()
+    }
   }
 
-  function handleSignup(event: FormEvent) {
+  async function handleSignup(event: FormEvent) {
     event.preventDefault()
     setSignupError('')
 
@@ -66,8 +70,12 @@ export function AuthModal({
       return
     }
 
-    signup(signupName, signupEmail, signupPassword)
-    onClose()
+    const error = await signup(signupName, signupEmail, signupPassword)
+    if (error) {
+      setSignupError(error)
+    } else {
+      onClose()
+    }
   }
 
   return (

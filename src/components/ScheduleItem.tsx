@@ -1,9 +1,10 @@
-import { classById, instructorById } from '../data/mockData'
-import type { ScheduleSession, SessionStatus } from '../types'
+import { useAcademy } from '../hooks/useAcademy'
+import type { ApiSession } from '../lib/api'
+import type { SessionStatus } from '../types'
 import { Icon } from './Icon'
 
 interface ScheduleItemProps {
-  readonly session: ScheduleSession
+  readonly session: ApiSession
   readonly booked?: boolean
   readonly onReserve: (sessionId: string) => void
   readonly className?: string
@@ -21,11 +22,17 @@ export function ScheduleItem({
   onReserve,
   className = '',
 }: ScheduleItemProps) {
-  const danceClass = classById(session.classId)
+  const { classById, instructorById } = useAcademy()
+  const danceClass = session.class || classById(session.classId)
   const instructor = danceClass
-    ? instructorById(danceClass.instructorId)
+    ? (danceClass.instructor || instructorById(danceClass.instructorId))
     : undefined
-  const status: SessionStatus = booked ? 'booked' : session.status
+  const status: SessionStatus = booked ? 'booked' : (session.status as SessionStatus)
+
+  // Support both API shape (startTime/endTime as time strings) and mock shape (time/endTime)
+  const timeDisplay = (session as any).time || session.startTime
+  const endTimeDisplay = session.endTime
+  const image = danceClass?.imageUrl || (danceClass as any)?.image
 
   return (
     <article
@@ -42,22 +49,22 @@ export function ScheduleItem({
           }`}
         />
         <div>
-          <p className="font-expanded text-lg font-bold">{session.time}</p>
+          <p className="font-expanded text-lg font-bold">{timeDisplay}</p>
           <p className="text-sm text-on-variant-light dark:text-on-variant-dark">
-            {session.endTime}
+            {endTimeDisplay}
           </p>
         </div>
       </div>
       <div className="hidden overflow-hidden lg:block">
         <img
-          src={danceClass?.image}
+          src={image}
           alt=""
           className="h-full min-h-[140px] w-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
         />
       </div>
       <div className="flex items-center gap-4 px-6 py-5">
         <img
-          src={instructor?.avatar}
+          src={instructor?.avatarUrl || (instructor as any)?.avatar}
           alt=""
           className="size-12 rounded-full object-cover"
         />
