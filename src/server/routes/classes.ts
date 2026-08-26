@@ -16,21 +16,22 @@ router.get('/', async (_req, res) => {
       },
     })
 
-    // Attach enrolled count
-    const enriched = await Promise.all(
-      result.map(async (cls) => {
-        const [{ value }] = await db
-          .select({ value: count() })
-          .from(enrollments)
-          .where(eq(enrollments.classId, cls.id))
+    // Attach enrolled count via a single batch group-by query
+    const enrollmentCounts = await db
+      .select({
+        classId: enrollments.classId,
+        count: count(),
+      })
+      .from(enrollments)
+      .groupBy(enrollments.classId)
 
-        return {
-          ...cls,
-          enrolled: value,
-          weekdays: cls.schedules.map((s) => s.weekday),
-        }
-      }),
-    )
+    const countMap = new Map(enrollmentCounts.map((e) => [e.classId, e.count]))
+
+    const enriched = result.map((cls) => ({
+      ...cls,
+      enrolled: countMap.get(cls.id) || 0,
+      weekdays: cls.schedules.map((s) => s.weekday),
+    }))
 
     res.json({ classes: enriched })
   } catch (err) {
