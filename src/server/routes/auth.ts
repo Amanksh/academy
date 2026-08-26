@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
-import { eq } from 'drizzle-orm'
+import { eq, or } from 'drizzle-orm'
 import { db } from '../../db'
 import { users } from '../../db/schema'
 import { signToken, requireAuth, type AuthRequest } from '../middleware/auth'
@@ -13,9 +13,9 @@ router.post('/signup', async (req, res) => {
     const { email, password, name, handle, phone } = req.body
 
     // Validation
-    if (!email || !password || !name || !handle) {
+    if (!email || !password || !name) {
       res.status(400).json({
-        error: 'email, password, name, and handle are required',
+        error: 'Email or phone number, password, and name are required',
       })
       return
     }
@@ -25,15 +25,36 @@ router.post('/signup', async (req, res) => {
       return
     }
 
-    // Check for existing user
+    const rawInput = email.trim()
+    const isEmail = rawInput.includes('@')
+
+    let userEmail: string
+    let userPhone: string | null = phone?.trim() || null
+
+    if (isEmail) {
+      userEmail = rawInput.toLowerCase()
+    } else {
+      userPhone = rawInput
+      const cleanPhone = rawInput.replace(/[^a-zA-Z0-9]/g, '')
+      userEmail = `${cleanPhone}@phone.mudra.in`
+    }
+
+    const userHandle =
+      handle?.trim() || `@${name.toLowerCase().replace(/[^a-z0-9]/g, '')}.${Math.floor(100 + Math.random() * 900)}`
+
+    // Check for existing user by email or phone
     const existing = await db
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.email, email.toLowerCase()))
+      .where(
+        userPhone
+          ? or(eq(users.email, userEmail), eq(users.phone, userPhone))
+          : eq(users.email, userEmail),
+      )
       .limit(1)
 
     if (existing.length > 0) {
-      res.status(409).json({ error: 'An account with this email already exists' })
+      res.status(409).json({ error: 'An account with this email or phone number already exists' })
       return
     }
 
@@ -41,7 +62,7 @@ router.post('/signup', async (req, res) => {
     const existingHandle = await db
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.handle, handle))
+      .where(eq(users.handle, userHandle))
       .limit(1)
 
     if (existingHandle.length > 0) {
@@ -55,17 +76,18 @@ router.post('/signup', async (req, res) => {
     const [newUser] = await db
       .insert(users)
       .values({
-        email: email.toLowerCase(),
+        email: userEmail,
         passwordHash,
         name,
-        handle,
-        phone: phone || null,
+        handle: userHandle,
+        phone: userPhone,
       })
       .returning({
         id: users.id,
         email: users.email,
         name: users.name,
         handle: users.handle,
+        phone: users.phone,
         tier: users.tier,
         xp: users.xp,
         xpGoal: users.xpGoal,
@@ -92,24 +114,34 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body
 
     if (!email || !password) {
-      res.status(400).json({ error: 'email and password are required' })
+      res.status(400).json({ error: 'Email or phone number and password are required' })
       return
     }
+
+    const rawInput = email.trim().toLowerCase()
+    const cleanPhone = rawInput.replace(/[^a-zA-Z0-9]/g, '')
+    const phoneEmail = `${cleanPhone}@phone.mudra.in`
 
     const [user] = await db
       .select()
       .from(users)
-      .where(eq(users.email, email.toLowerCase()))
+      .where(
+        or(
+          eq(users.email, rawInput),
+          eq(users.phone, email.trim()),
+          eq(users.email, phoneEmail),
+        ),
+      )
       .limit(1)
 
     if (!user) {
-      res.status(401).json({ error: 'Invalid email or password' })
+      res.status(401).json({ error: 'Invalid email/phone number or password' })
       return
     }
 
     const valid = await bcrypt.compare(password, user.passwordHash)
     if (!valid) {
-      res.status(401).json({ error: 'Invalid email or password' })
+      res.status(401).json({ error: 'Invalid email/phone number or password' })
       return
     }
 

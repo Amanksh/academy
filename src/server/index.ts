@@ -8,6 +8,7 @@ import eventsRoutes from './routes/events'
 import instructorsRoutes from './routes/instructors'
 import scheduleRoutes from './routes/schedule'
 import membershipRoutes from './routes/membership'
+import adminRoutes from './routes/admin'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -28,6 +29,7 @@ app.use('/api/events', eventsRoutes)
 app.use('/api/instructors', instructorsRoutes)
 app.use('/api/schedule', scheduleRoutes)
 app.use('/api/membership', membershipRoutes)
+app.use('/api/admin', adminRoutes)
 
 // ── 404 fallback ──
 app.use((_req, res) => {

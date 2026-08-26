@@ -7,6 +7,7 @@ import { EventsPage } from './pages/EventsPage'
 import { ClassesPage } from './pages/ClassesPage'
 import { SchedulePage } from './pages/SchedulePage'
 import { MembershipPage } from './pages/MembershipPage'
+import { AdminPage } from './pages/AdminPage'
 
 interface AppProps {
   readonly className?: string
@@ -19,6 +20,7 @@ function App({ className = '' }: AppProps) {
         <AcademyProvider>
           <BrowserRouter>
             <Routes>
+              <Route path="/admin" element={<AdminPage />} />
               <Route element={<Layout />}>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/events" element={<EventsPage />} />

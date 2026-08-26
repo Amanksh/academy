@@ -129,6 +129,17 @@ export function SiteHeader({ className = '' }: SiteHeaderProps) {
                       <Icon name="calendar_today" size={16} />
                       Schedule
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDropdownOpen(false)
+                        navigate('/admin')
+                      }}
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-[#25d7da] hover:bg-white/5"
+                    >
+                      <Icon name="admin_panel_settings" size={16} />
+                      Admin Console
+                    </button>
                     <div className="my-1 border-t border-white/5" />
                     <button
                       type="button"

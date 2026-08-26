@@ -151,16 +151,16 @@ export function AuthModal({
             <form onSubmit={handleLogin} className="flex flex-col gap-4">
               <div>
                 <label htmlFor="login-email" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-on-variant-light">
-                  Email
+                  Gmail / Email or Phone Number
                 </label>
                 <input
                   id="login-email"
-                  type="email"
+                  type="text"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  placeholder="e.g. dancer@gmail.com or 9876543210"
                   className={`input-field ${loginError && !loginEmail.trim() ? 'error' : ''}`}
-                  autoComplete="email"
+                  autoComplete="username"
                 />
               </div>
               <div>
@@ -208,16 +208,16 @@ export function AuthModal({
               </div>
               <div>
                 <label htmlFor="signup-email" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-on-variant-light">
-                  Email
+                  Gmail / Email or Phone Number
                 </label>
                 <input
                   id="signup-email"
-                  type="email"
+                  type="text"
                   value={signupEmail}
                   onChange={(e) => setSignupEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  placeholder="e.g. dancer@gmail.com or 9876543210"
                   className={`input-field ${signupError && !signupEmail.trim() ? 'error' : ''}`}
-                  autoComplete="email"
+                  autoComplete="username"
                 />
               </div>
               <div>

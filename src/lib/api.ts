@@ -132,6 +132,196 @@ export const api = {
       return request<ApiMembershipDashboard>('/api/membership/me')
     },
   },
+
+  // ── Admin ──
+
+  admin: {
+    login(data: { username?: string; email?: string; password: string }) {
+      return request<{ success: boolean; user: ApiUser; token: string }>('/api/admin/login', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+    },
+    stats() {
+      return request<AdminStatsResponse>('/api/admin/stats')
+    },
+    instructors: {
+      create(data: { name: string; title: string; avatarUrl?: string; bio?: string; id?: string }) {
+        return request<{ instructor: ApiInstructor }>('/api/admin/instructors', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        })
+      },
+      update(id: string, data: Partial<{ name: string; title: string; avatarUrl: string; bio: string }>) {
+        return request<{ instructor: ApiInstructor }>(`/api/admin/instructors/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(data),
+        })
+      },
+      delete(id: string) {
+        return request<{ success: boolean }>(`/api/admin/instructors/${id}`, {
+          method: 'DELETE',
+        })
+      },
+    },
+    classes: {
+      create(data: {
+        name: string
+        style: string
+        level: string
+        instructorId: string
+        priceInr: number
+        durationMin: number
+        capacity: number
+        blurb?: string
+        imageUrl?: string
+        weekdays?: string[]
+        id?: string
+      }) {
+        return request<{ class: ApiClass }>('/api/admin/classes', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        })
+      },
+      update(
+        id: string,
+        data: Partial<{
+          name: string
+          style: string
+          level: string
+          instructorId: string
+          priceInr: number
+          durationMin: number
+          capacity: number
+          blurb: string
+          imageUrl: string
+          weekdays: string[]
+          isActive: boolean
+        }>,
+      ) {
+        return request<{ class: ApiClass }>(`/api/admin/classes/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(data),
+        })
+      },
+      delete(id: string) {
+        return request<{ success: boolean }>(`/api/admin/classes/${id}`, {
+          method: 'DELETE',
+        })
+      },
+    },
+    events: {
+      create(data: {
+        title: string
+        category: string
+        startDate: string
+        endDate?: string
+        timeLabel: string
+        venue: string
+        imageUrl?: string
+        instructorId?: string
+        priceInr?: number
+        isFeatured?: boolean
+        description?: string
+        capacity?: number
+        id?: string
+      }) {
+        return request<{ event: ApiEvent }>('/api/admin/events', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        })
+      },
+      update(
+        id: string,
+        data: Partial<{
+          title: string
+          category: string
+          startDate: string
+          endDate: string | null
+          timeLabel: string
+          venue: string
+          imageUrl: string
+          instructorId: string | null
+          priceInr: number
+          isFeatured: boolean
+          description: string
+          capacity: number | null
+        }>,
+      ) {
+        return request<{ event: ApiEvent }>(`/api/admin/events/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(data),
+        })
+      },
+      delete(id: string) {
+        return request<{ success: boolean }>(`/api/admin/events/${id}`, {
+          method: 'DELETE',
+        })
+      },
+    },
+    schedule: {
+      list() {
+        return request<{ sessions: ApiSession[] }>('/api/admin/schedule')
+      },
+      create(data: {
+        classId: string
+        date: string
+        startTime: string
+        endTime: string
+        studio: string
+        status?: string
+      }) {
+        return request<{ session: ApiSession }>('/api/admin/schedule', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        })
+      },
+      update(
+        id: string,
+        data: Partial<{
+          classId: string
+          date: string
+          startTime: string
+          endTime: string
+          studio: string
+          status: string
+        }>,
+      ) {
+        return request<{ session: ApiSession }>(`/api/admin/schedule/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(data),
+        })
+      },
+      delete(id: string) {
+        return request<{ success: boolean }>(`/api/admin/schedule/${id}`, {
+          method: 'DELETE',
+        })
+      },
+    },
+    users: {
+      list() {
+        return request<{ users: AdminUser[] }>('/api/admin/users')
+      },
+      assignMembership(data: {
+        userId: string
+        planId: string
+        startsOn?: string
+        renewsOn?: string
+        amountInr?: number
+      }) {
+        return request<{ membership: unknown }>('/api/admin/memberships', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        })
+      },
+      update(id: string, data: Partial<{ tier: string; xp: number; role: string }>) {
+        return request<{ user: AdminUser }>(`/api/admin/users/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(data),
+        })
+      },
+    },
+  },
 } as const
 
 // ── API response types ──
@@ -224,5 +414,48 @@ export interface ApiMembershipDashboard {
     amountInr: number
     status: string
     createdAt: string
+  }[]
+}
+
+export interface AdminStatsResponse {
+  stats: {
+    activeMembers: number
+    totalUsers: number
+    monthlyRevenue: string
+    rawRevenue: number
+    upcomingEvents: number
+    todayClasses: number
+  }
+  recentActivity: {
+    id: string
+    userId: string
+    title: string
+    amountInr: number
+    status: string
+    createdAt: string
+    paymentMethod: string | null
+  }[]
+  nextSessions: ApiSession[]
+}
+
+export interface AdminUser {
+  id: string
+  email: string
+  name: string
+  handle: string
+  avatarUrl: string | null
+  phone: string | null
+  tier: string
+  xp: number
+  xpGoal: number
+  role: string
+  createdAt: string
+  memberships?: {
+    id: string
+    planId: string
+    startsOn: string
+    renewsOn: string
+    status: string
+    plan?: ApiMembershipPlan
   }[]
 }

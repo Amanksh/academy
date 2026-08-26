@@ -29,57 +29,111 @@ export function MembershipPage({ className = '' }: MembershipPageProps) {
 
   const userPlan = dashboard?.membership?.plan || planById(activePlanId)
   const memberName = user?.name ?? 'Guest Dancer'
-  const xp = user?.xp ?? 0
-  const xpGoal = user?.xpGoal ?? 3000
   const tier = user?.tier ?? 'Explorer'
-  const xpPercent = Math.min(100, Math.round((xp / xpGoal) * 100))
-  const renewsOn = dashboard?.membership?.renewsOn ?? 'Active Trial'
+  const hasActiveMembership = Boolean(dashboard?.membership)
+
+  // ── Calculate Remaining Days & Slider Percentage ──
+  const startsOnDate = dashboard?.membership?.startsOn
+    ? new Date(dashboard.membership.startsOn)
+    : null
+  const renewsOnDate = dashboard?.membership?.renewsOn
+    ? new Date(dashboard.membership.renewsOn)
+    : null
+
+  const planMonths = userPlan?.months ?? 3
+  const totalDays =
+    startsOnDate && renewsOnDate
+      ? Math.max(
+          1,
+          Math.ceil(
+            (renewsOnDate.getTime() - startsOnDate.getTime()) / (1000 * 60 * 60 * 24),
+          ),
+        )
+      : planMonths * 30
+
+  const daysRemaining = renewsOnDate
+    ? Math.max(
+        0,
+        Math.ceil((renewsOnDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)),
+      )
+    : hasActiveMembership
+      ? 45
+      : 0
+
+  const percentRemaining = Math.min(
+    100,
+    Math.max(0, Math.round((daysRemaining / totalDays) * 100)),
+  )
+
+  const formattedRenewsOn = renewsOnDate
+    ? renewsOnDate.toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })
+    : 'No active renewal'
 
   return (
     <PageSection className={`py-12 lg:py-16 ${className}`}>
-      <section className="overflow-hidden rounded-xl glass-card glow-border px-8 py-10 text-on-surface-light lg:flex lg:items-center lg:justify-between lg:px-12 lg:py-14">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-terracotta-muted">
+      {/* ─────────────────── Member Profile & Validity Slider ─────────────────── */}
+      <section className="overflow-hidden rounded-2xl glass-card glow-border px-8 py-10 text-on-surface-light lg:flex lg:items-center lg:justify-between lg:px-12 lg:py-12">
+        <div className="max-w-md">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#25d7da]/15 border border-[#25d7da]/30 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-[#25d7da]">
+            <Icon name="verified" size={14} className="text-[#25d7da]" />
             {tier}
-          </p>
-          <h1 className="mt-3 font-expanded text-4xl font-bold lg:text-5xl">
+          </span>
+          <h1 className="mt-3 font-expanded text-3xl sm:text-4xl lg:text-5xl font-bold">
             {memberName}
           </h1>
-          <p className="mt-3 text-base text-primary-container">
-            {userPlan?.label ?? 'Explorer'} · {dashboard?.membership ? `Renews on ${renewsOn}` : 'Select a pass below to start'}
+          <p className="mt-2 text-sm text-on-variant-light dark:text-on-variant-dark">
+            {userPlan?.label ?? 'Explorer'} ·{' '}
+            {hasActiveMembership ? `Active plan` : 'Select a membership plan below'}
           </p>
         </div>
-        <div className="mt-8 w-full max-w-md lg:mt-0">
+
+        {/* Validity Slider Widget */}
+        <div className="mt-8 w-full max-w-md lg:mt-0 rounded-2xl border border-white/10 bg-black/20 p-6 backdrop-blur-md">
           <div className="flex items-center justify-between text-sm">
-            <span className="inline-flex items-center gap-1 font-semibold">
-              <Icon name="bolt" filled className="text-primary" />
-              XP balance
+            <span className="inline-flex items-center gap-1.5 font-bold text-white">
+              <Icon name="timer" filled className="text-[#25d7da]" size={18} />
+              Membership Validity
             </span>
-            <span className="font-bold">
-              {xp.toLocaleString('en-IN')} / {xpGoal.toLocaleString('en-IN')}
+            <span className="font-expanded text-base font-extrabold text-[#25d7da]">
+              {hasActiveMembership ? `${daysRemaining} Days Left` : '0 Days'}
             </span>
           </div>
-          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/5">
+
+          {/* Slider Progress Bar */}
+          <div className="relative mt-4 h-3 w-full overflow-hidden rounded-full bg-white/10 p-0.5">
             <div
-              className="h-full rounded-full bg-primary shadow-[0_0_8px_rgb(61_139_255/0.5)]"
-              style={{ width: `${xpPercent}%` }}
+              className="h-full rounded-full bg-gradient-to-r from-primary via-[#ffb599] to-[#25d7da] shadow-[0_0_12px_rgba(37,215,218,0.5)] transition-all duration-500"
+              style={{ width: `${hasActiveMembership ? percentRemaining : 0}%` }}
             />
           </div>
-          <p className="mt-3 text-sm text-primary-container">
-            {Math.max(0, xpGoal - xp)} XP to the next studio rank
-          </p>
+
+          <div className="mt-3 flex items-center justify-between text-xs text-on-variant-light">
+            <span>
+              {hasActiveMembership
+                ? `${daysRemaining} of ${totalDays} days remaining`
+                : 'No active subscription'}
+            </span>
+            <span className="font-semibold text-white/90">
+              {hasActiveMembership ? `Renews on ${formattedRenewsOn}` : 'Pick a plan below'}
+            </span>
+          </div>
         </div>
       </section>
 
       <div className="my-12 gradient-divider" />
 
+      {/* ─────────────────── Membership Plans ─────────────────── */}
       <h2 className="mb-6 font-expanded text-3xl font-bold">Membership Plans</h2>
       <div className="grid gap-6 lg:grid-cols-3">
         {membershipPlans.map((plan) => (
           <MembershipPlanCard
             key={plan.id}
             plan={plan as any}
-            active={plan.id === (dashboard?.membership?.planId || activePlanId)}
+            active={plan.id === (dashboard?.membership?.planId || (hasActiveMembership ? activePlanId : ''))}
             onSelect={(id) => openBooking({ kind: 'plan', id })}
           />
         ))}
@@ -87,6 +141,7 @@ export function MembershipPage({ className = '' }: MembershipPageProps) {
 
       <div className="my-12 gradient-divider" />
 
+      {/* ─────────────────── Recent Transactions ─────────────────── */}
       <h2 className="mb-6 font-expanded text-3xl font-bold">Recent payments</h2>
       {isLoggedIn && dashboard?.transactions && dashboard.transactions.length > 0 ? (
         <ul className="overflow-hidden rounded-xl glass-card">

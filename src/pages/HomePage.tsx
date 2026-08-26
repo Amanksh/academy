@@ -348,25 +348,25 @@ export function HomePage({ className = '' }: HomePageProps) {
         <TrendingRail onBook={(id) => openBooking({ kind: 'class', id })} />
       </PageSection>
 
-      {/* ─────────────────── FREE PASS CTA ─────────────────── */}
+      {/* ─────────────────── COMMUNITY CTA ─────────────────── */}
       <section className="py-20 lg:py-28">
         <PageSection>
           <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-r from-[#fed5b0] via-[#d5e8b4] to-[#25d7da] p-10 sm:p-16 text-black text-center shadow-2xl">
             <div className="relative z-10 max-w-2xl mx-auto">
               <span className="rounded-full bg-black/10 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-black">
-                Limited Time Studio Pass
+                Join Mudra Academy
               </span>
               <h2 className="mt-4 font-expanded text-4xl sm:text-6xl font-black uppercase tracking-tight">
                 Start Dancing Today
               </h2>
               <p className="mt-3 text-sm sm:text-base font-medium text-black/80">
-                Join our supportive community in Gomti Nagar, Lucknow. Claim your free introductory trial pass.
+                Join our supportive community in Gomti Nagar, Lucknow. Start your journey in classical and contemporary dance.
               </p>
 
               {trialSubmitted ? (
                 <div className="mt-8 inline-flex items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-bold text-white shadow-xl">
                   <Icon name="check_circle" size={20} filled className="text-[#25d7da]" />
-                  Pass claimed! Check your inbox for studio access.
+                  Welcome to Mudra! Check your inbox for orientation details.
                 </div>
               ) : (
                 <form onSubmit={handleTrialSubmit} className="mt-8 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
@@ -382,7 +382,7 @@ export function HomePage({ className = '' }: HomePageProps) {
                     type="submit"
                     className="rounded-full bg-black px-7 py-3.5 text-xs font-black uppercase tracking-wider text-white transition-transform hover:scale-105 active:scale-95 shadow-xl"
                   >
-                    Claim Pass
+                    Get Started
                   </button>
                 </form>
               )}
