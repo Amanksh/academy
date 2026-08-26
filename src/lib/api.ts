@@ -29,6 +29,52 @@ async function request<T>(
   return data as T
 }
 
+// Upload file via multipart/form-data (no JSON content-type)
+async function uploadFile(
+  file: File,
+  entity: string,
+  onProgress?: (percent: number) => void,
+): Promise<{ url: string; key: string; size: number; type: string }> {
+  const token = localStorage.getItem('mudra_auth_token')
+  const formData = new FormData()
+  formData.append('file', file)
+
+  // Use XMLHttpRequest for progress tracking
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', `${API_BASE}/api/upload?entity=${encodeURIComponent(entity)}`)
+
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+    }
+
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(Math.round((e.loaded / e.total) * 100))
+      }
+    })
+
+    xhr.addEventListener('load', () => {
+      try {
+        const data = JSON.parse(xhr.responseText)
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(data)
+        } else {
+          reject(new ApiError(data.error || 'Upload failed', xhr.status))
+        }
+      } catch {
+        reject(new ApiError('Upload failed — invalid response', xhr.status))
+      }
+    })
+
+    xhr.addEventListener('error', () => {
+      reject(new ApiError('Network error during upload', 0))
+    })
+
+    xhr.send(formData)
+  })
+}
+
 export class ApiError extends Error {
   status: number
 
@@ -61,6 +107,7 @@ interface AuthResponse {
 }
 
 export const api = {
+  upload: uploadFile,
   auth: {
     signup(data: { email: string; password: string; name: string; handle: string }) {
       return request<AuthResponse>('/api/auth/signup', {

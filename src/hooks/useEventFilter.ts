@@ -21,10 +21,11 @@ export function useEventFilter(): UseEventFilterResult {
 
   const visibleEvents = useMemo(() => {
     return events.filter((item) => {
-      if (item.isFeatured) return false
+      // Only hide the specific event shown as the hero card
+      if (featured && item.id === featured.id) return false
       return category === 'All' || item.category === category
     })
-  }, [category, events])
+  }, [category, events, featured])
 
   return { category, setCategory, featured, visibleEvents }
 }

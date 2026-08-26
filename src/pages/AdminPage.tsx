@@ -11,6 +11,7 @@ import {
   type ApiMembershipPlan,
 } from '../lib/api'
 import { formatInr } from '../lib/format'
+import { FileUploadZone } from '../components/FileUploadZone'
 
 type AdminTab =
   | 'dashboard'
@@ -1876,16 +1877,13 @@ function TeacherModal({
             className="w-full p-3 rounded-xl bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:outline-none text-white text-xs"
           />
         </div>
-        <div>
-          <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Avatar Image URL</label>
-          <input
-            type="url"
-            value={avatarUrl}
-            onChange={(e) => setAvatarUrl(e.target.value)}
-            placeholder="https://..."
-            className="w-full p-3 rounded-xl bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:outline-none text-white text-xs"
-          />
-        </div>
+        <FileUploadZone
+          label="Avatar / Profile Photo"
+          value={avatarUrl}
+          onChange={setAvatarUrl}
+          accept="image"
+          entity="teachers"
+        />
         <div>
           <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Biography / Lineage</label>
           <textarea
@@ -2084,16 +2082,13 @@ function ClassModal({
             ))}
           </div>
         </div>
-        <div>
-          <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Cover Image URL</label>
-          <input
-            type="url"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="https://..."
-            className="w-full p-3 rounded-xl bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:outline-none text-white text-xs"
-          />
-        </div>
+        <FileUploadZone
+          label="Cover Image"
+          value={imageUrl}
+          onChange={setImageUrl}
+          accept="image"
+          entity="classes"
+        />
         <div>
           <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Curriculum Overview</label>
           <textarea
@@ -2276,16 +2271,13 @@ function EventModal({
             Feature as Highlight Masterclass on Homepage
           </label>
         </div>
-        <div>
-          <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Cover Image URL</label>
-          <input
-            type="url"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="https://..."
-            className="w-full p-3 rounded-xl bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:outline-none text-white text-xs"
-          />
-        </div>
+        <FileUploadZone
+          label="Cover Image / Video"
+          value={imageUrl}
+          onChange={setImageUrl}
+          accept="both"
+          entity="events"
+        />
         <div>
           <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Description</label>
           <textarea

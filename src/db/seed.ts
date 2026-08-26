@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import bcrypt from 'bcryptjs'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import * as schema from './schema'
@@ -300,6 +301,24 @@ async function seed() {
     ])
     .onConflictDoNothing()
   console.log('  ✓ membership_plans')
+
+  // 7 — Default Admin User
+  const adminPasswordHash = await bcrypt.hash('Harsh@0404', 10)
+  await db
+    .insert(schema.users)
+    .values([
+      {
+        email: 'admin@mudra',
+        passwordHash: adminPasswordHash,
+        name: 'Academy Administrator',
+        handle: '@admin.mudra',
+        role: 'admin',
+        tier: 'Elite Member',
+        phone: '9999999999',
+      },
+    ])
+    .onConflictDoNothing()
+  console.log('  ✓ admin user (admin@mudra)')
 
   console.log('\n✅ Seed complete!')
   process.exit(0)
