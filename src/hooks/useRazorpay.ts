@@ -58,7 +58,7 @@ export function useRazorpay() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('mudra_auth_token')}`,
         },
         body: JSON.stringify({ kind: opts.kind, referenceId: opts.referenceId }),
       })
@@ -91,7 +91,7 @@ export function useRazorpay() {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  Authorization: `Bearer ${localStorage.getItem('token')}`,
+                  Authorization: `Bearer ${localStorage.getItem('mudra_auth_token')}`,
                 },
                 body: JSON.stringify({
                   ...response,

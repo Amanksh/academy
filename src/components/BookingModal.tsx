@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import { useAcademy } from '../hooks/useAcademy'
+import { useAuth } from '../hooks/useAuth'
+import { useRazorpay } from '../hooks/useRazorpay'
 import { formatInr } from '../lib/format'
 import type { PendingBooking } from '../types'
 import { Icon } from './Icon'
@@ -17,6 +20,9 @@ export function BookingModal({
   className = '',
 }: BookingModalProps) {
   const { classById, eventById, planById, instructorById } = useAcademy()
+  const { isLoggedIn } = useAuth()
+  const { pay, loading: paymentLoading } = useRazorpay()
+  const [paymentError, setPaymentError] = useState<string | null>(null)
 
   const danceClass = pending.kind === 'class' ? classById(pending.id) : undefined
   const event = pending.kind === 'event' ? eventById(pending.id) : undefined
@@ -36,6 +42,30 @@ export function BookingModal({
       : instructor
         ? `${instructor.name} · ${instructor.title}`
         : event?.venue
+
+  const handleConfirm = async () => {
+    setPaymentError(null)
+
+    // If the item is free or user is not logged in, use the original flow
+    if (price === 0 || !isLoggedIn) {
+      onConfirm()
+      return
+    }
+
+    // Trigger Razorpay payment
+    await pay({
+      kind: pending.kind,
+      referenceId: pending.id,
+      onSuccess: () => {
+        onConfirm()
+      },
+      onFailure: (reason) => {
+        if (reason !== 'Payment cancelled') {
+          setPaymentError(reason)
+        }
+      },
+    })
+  }
 
   return (
     <div
@@ -70,20 +100,27 @@ export function BookingModal({
           <p className="mt-4 font-expanded text-3xl font-bold text-primary">
             {price === 0 ? 'Free' : formatInr(price)}
           </p>
+          {paymentError && (
+            <p className="mt-3 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2 text-sm text-red-400">
+              {paymentError}
+            </p>
+          )}
           <div className="mt-6 grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={onClose}
               className="glass rounded-xl py-2.5 text-sm font-bold"
+              disabled={paymentLoading}
             >
               Cancel
             </button>
             <button
               type="button"
-              onClick={onConfirm}
-              className="btn-glow rounded-xl bg-primary py-2.5 text-sm font-bold text-on-primary"
+              onClick={handleConfirm}
+              disabled={paymentLoading}
+              className="btn-glow rounded-xl bg-primary py-2.5 text-sm font-bold text-on-primary disabled:opacity-60"
             >
-              Confirm
+              {paymentLoading ? 'Processing…' : price === 0 ? 'Confirm' : 'Pay Now'}
             </button>
           </div>
         </div>
@@ -91,6 +128,7 @@ export function BookingModal({
     </div>
   )
 }
+
 
 interface ToastProps {
   readonly message: string
