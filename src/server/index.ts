@@ -2,10 +2,6 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import path from 'path'
-import { fileURLToPath } from 'url'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 
 import authRoutes from './routes/auth'
 import classesRoutes from './routes/classes'
@@ -15,6 +11,7 @@ import scheduleRoutes from './routes/schedule'
 import membershipRoutes from './routes/membership'
 import adminRoutes from './routes/admin'
 import uploadRoutes from './routes/upload'
+import paymentsRoutes from './routes/payments'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -60,6 +57,7 @@ app.use('/api/schedule', scheduleRoutes)
 app.use('/api/membership', membershipRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/upload', uploadRoutes)
+app.use('/api/payments', paymentsRoutes)
 
 // ── Serve React Frontend (production) ──
 const distPath = path.join(process.cwd(), 'dist')
@@ -67,7 +65,7 @@ app.use(express.static(distPath))
 
 // ── SPA Fallback — must be last ──
 // Any non-API route returns index.html so React Router works
-app.get('*', (_req, res) => {
+app.use((_req, res) => {
   res.sendFile(path.join(distPath, 'index.html'))
 })
 
