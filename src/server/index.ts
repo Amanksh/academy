@@ -2,6 +2,10 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 import authRoutes from './routes/auth'
 import classesRoutes from './routes/classes'
@@ -57,9 +61,14 @@ app.use('/api/membership', membershipRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/upload', uploadRoutes)
 
-// ── 404 fallback ──
-app.use((_req, res) => {
-  res.status(404).json({ error: 'Route not found' })
+// ── Serve React Frontend (production) ──
+const distPath = path.join(process.cwd(), 'dist')
+app.use(express.static(distPath))
+
+// ── SPA Fallback — must be last ──
+// Any non-API route returns index.html so React Router works
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'))
 })
 
 // ── Start ──
