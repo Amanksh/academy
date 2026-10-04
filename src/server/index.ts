@@ -12,6 +12,7 @@ import membershipRoutes from './routes/membership'
 import adminRoutes from './routes/admin'
 import uploadRoutes from './routes/upload'
 import paymentsRoutes from './routes/payments'
+import notificationsRoutes from './routes/notifications'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -58,6 +59,7 @@ app.use('/api/membership', membershipRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/upload', uploadRoutes)
 app.use('/api/payments', paymentsRoutes)
+app.use('/api/notifications', notificationsRoutes)
 
 // ── Serve React Frontend (production) ──
 const distPath = path.join(process.cwd(), 'dist')

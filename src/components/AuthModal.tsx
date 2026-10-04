@@ -27,8 +27,9 @@ export function AuthModal({
   const [loginError, setLoginError] = useState('')
 
   // Signup state
+  // Signup state
   const [signupName, setSignupName] = useState('')
-  const [signupEmail, setSignupEmail] = useState('')
+  const [signupPhone, setSignupPhone] = useState('')
   const [signupPassword, setSignupPassword] = useState('')
   const [signupConfirm, setSignupConfirm] = useState('')
   const [signupError, setSignupError] = useState('')
@@ -45,16 +46,29 @@ export function AuthModal({
 
   function validateIdentifier(val: string): string | null {
     const trimmed = val.trim()
-    if (!trimmed) return 'Please enter your email or phone number'
+    if (!trimmed) return 'Please enter your phone number or email'
     if (trimmed.includes('@')) {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-        return 'Please enter a valid email address (e.g. dancer@gmail.com)'
+        return 'Please enter a valid email address'
       }
     } else {
       const cleaned = trimmed.replace(/[\s\-()]/g, '')
       if (!/^\+?[0-9]{7,15}$/.test(cleaned)) {
         return 'Please enter a valid phone number (at least 7 digits)'
       }
+    }
+    return null
+  }
+
+  function validateSignupPhone(val: string): string | null {
+    const trimmed = val.trim()
+    if (!trimmed) return 'Please enter your phone number'
+    if (trimmed.includes('@')) {
+      return 'Please enter your phone number instead of an email address'
+    }
+    const digitsOnly = trimmed.replace(/\D/g, '')
+    if (digitsOnly.length < 10 || digitsOnly.length > 15) {
+      return 'Please enter a valid 10-digit mobile number (e.g. 9876543210)'
     }
     return null
   }
@@ -94,9 +108,9 @@ export function AuthModal({
       return
     }
 
-    const identifierError = validateIdentifier(signupEmail)
-    if (identifierError) {
-      setSignupError(identifierError)
+    const phoneError = validateSignupPhone(signupPhone)
+    if (phoneError) {
+      setSignupError(phoneError)
       return
     }
 
@@ -110,7 +124,7 @@ export function AuthModal({
     }
 
     setIsSubmitting(true)
-    const error = await signup(signupName.trim(), signupEmail.trim(), signupPassword)
+    const error = await signup(signupName.trim(), signupPhone.trim(), signupPassword)
     setIsSubmitting(false)
 
     if (error) {
@@ -173,7 +187,7 @@ export function AuthModal({
                       Logged in automatically
                     </p>
                     <p className="text-[11px] text-slate-400 truncate">
-                      {signupEmail} · Member session active
+                      {signupPhone} · Member session active
                     </p>
                   </div>
                 </div>
@@ -260,14 +274,14 @@ export function AuthModal({
                 <form onSubmit={handleLogin} className="flex flex-col gap-4">
                   <div>
                     <label htmlFor="login-email" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-300">
-                      Gmail / Email or Phone Number
+                      Phone Number or Email
                     </label>
                     <input
                       id="login-email"
                       type="text"
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
-                      placeholder="e.g. dancer@gmail.com or 9876543210"
+                      placeholder="e.g. 9876543210 or yourname@gmail.com"
                       className={`input-field ${loginError && !loginEmail.trim() ? 'error' : ''}`}
                       autoComplete="username"
                     />
@@ -317,17 +331,22 @@ export function AuthModal({
                     />
                   </div>
                   <div>
-                    <label htmlFor="signup-email" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-300">
-                      Gmail / Email or Phone Number
-                    </label>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <label htmlFor="signup-phone" className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                        Phone Number
+                      </label>
+                      <span className="text-[11px] font-semibold text-emerald-400">
+                        WhatsApp Updates
+                      </span>
+                    </div>
                     <input
-                      id="signup-email"
-                      type="text"
-                      value={signupEmail}
-                      onChange={(e) => setSignupEmail(e.target.value)}
-                      placeholder="e.g. dancer@gmail.com or 9876543210"
-                      className={`input-field ${signupError && !signupEmail.trim() ? 'error' : ''}`}
-                      autoComplete="username"
+                      id="signup-phone"
+                      type="tel"
+                      value={signupPhone}
+                      onChange={(e) => setSignupPhone(e.target.value)}
+                      placeholder="e.g. 9876543210 or +91 98765 43210"
+                      className={`input-field ${signupError && !signupPhone.trim() ? 'error' : ''}`}
+                      autoComplete="tel"
                     />
                   </div>
                   <div>

@@ -368,6 +368,24 @@ export const api = {
         })
       },
     },
+    notifications: {
+      whatsappStatus() {
+        return request<{ configured: boolean; recipientCount: number }>('/api/notifications/whatsapp/status')
+      },
+      sendEventWhatsapp(eventId: string) {
+        return request<{
+          success: boolean
+          sent: number
+          failed: number
+          total: number
+          message: string
+          errors?: string[]
+        }>('/api/notifications/whatsapp/event', {
+          method: 'POST',
+          body: JSON.stringify({ eventId }),
+        })
+      },
+    },
   },
 } as const
 

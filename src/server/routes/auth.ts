@@ -34,8 +34,9 @@ router.post('/signup', async (req, res) => {
     if (isEmail) {
       userEmail = rawInput.toLowerCase()
     } else {
-      userPhone = rawInput
-      const cleanPhone = rawInput.replace(/[^a-zA-Z0-9]/g, '')
+      const digits = rawInput.replace(/\D/g, '')
+      userPhone = rawInput.startsWith('+') ? `+${digits}` : digits
+      const cleanPhone = digits
       userEmail = `${cleanPhone}@phone.mudra.in`
     }
 
@@ -43,12 +44,18 @@ router.post('/signup', async (req, res) => {
       handle?.trim() || `@${name.toLowerCase().replace(/[^a-z0-9]/g, '')}.${Math.floor(100 + Math.random() * 900)}`
 
     // Check for existing user by email or phone
+    const cleanPhone = rawInput.replace(/\D/g, '')
     const existing = await db
       .select({ id: users.id })
       .from(users)
       .where(
         userPhone
-          ? or(eq(users.email, userEmail), eq(users.phone, userPhone))
+          ? or(
+              eq(users.email, userEmail),
+              eq(users.phone, userPhone),
+              eq(users.phone, cleanPhone),
+              cleanPhone.length === 10 ? eq(users.phone, `+91${cleanPhone}`) : eq(users.phone, userPhone),
+            )
           : eq(users.email, userEmail),
       )
       .limit(1)
@@ -121,17 +128,29 @@ router.post('/login', async (req, res) => {
     const rawInput = email.trim().toLowerCase()
     const cleanPhone = rawInput.replace(/[^a-zA-Z0-9]/g, '')
     const phoneEmail = `${cleanPhone}@phone.mudra.in`
+    const digits = rawInput.replace(/\D/g, '')
+
+    const phoneVariants = [
+      email.trim(),
+      rawInput,
+      cleanPhone,
+      digits,
+      digits ? `+${digits}` : '',
+      digits.length === 10 ? `+91${digits}` : '',
+      digits.length === 10 ? `91${digits}` : '',
+      digits.startsWith('91') && digits.length === 12 ? digits.slice(2) : '',
+    ].filter((v): v is string => Boolean(v))
+
+    const loginConditions = [
+      eq(users.email, rawInput),
+      eq(users.email, phoneEmail),
+      ...phoneVariants.map((p) => eq(users.phone, p)),
+    ]
 
     const [user] = await db
       .select()
       .from(users)
-      .where(
-        or(
-          eq(users.email, rawInput),
-          eq(users.phone, email.trim()),
-          eq(users.email, phoneEmail),
-        ),
-      )
+      .where(or(...loginConditions))
       .limit(1)
 
     if (!user) {

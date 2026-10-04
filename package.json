@@ -29,7 +29,8 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2",
-    "tsx": "^4.23.12"
+    "tsx": "^4.23.12",
+    "twilio": "^6.1.2"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",

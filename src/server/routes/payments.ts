@@ -16,10 +16,19 @@ import { requireAuth, type AuthRequest } from '../middleware/auth'
 
 const router = Router()
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-})
+// Lazy-init: only create the Razorpay instance when credentials are set
+let _razorpay: Razorpay | null = null
+function getRazorpay(): Razorpay | null {
+  if (_razorpay) return _razorpay
+  const key_id = process.env.RAZORPAY_KEY_ID
+  const key_secret = process.env.RAZORPAY_KEY_SECRET
+  if (!key_id || !key_secret) {
+    console.warn('⚠️  Razorpay keys not set — payment routes will return 503')
+    return null
+  }
+  _razorpay = new Razorpay({ key_id, key_secret })
+  return _razorpay
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // POST /api/payments/order
@@ -72,6 +81,12 @@ router.post('/order', requireAuth, async (req, res) => {
     }
 
     // ── Create Razorpay order (amount in paise) ──
+    const razorpay = getRazorpay()
+    if (!razorpay) {
+      res.status(503).json({ error: 'Payment gateway not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.' })
+      return
+    }
+
     const order = await razorpay.orders.create({
       amount: amountInr * 100, // Razorpay expects paise
       currency: 'INR',
